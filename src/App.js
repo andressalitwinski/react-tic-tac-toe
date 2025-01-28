@@ -10,8 +10,11 @@ function Square({ value, onSquareClick }) {
 
 function Board({ xIsNext, squares, onPlay }) {
   const winner = calculateWinner(squares);
+  const end = endOfGame(squares);
   let status;
-  if (winner) {
+  if(end && !winner) {
+    status = "End of game. No winner.";
+  } else if (winner) {
     status = "Winner: " + winner;
   } else {
     status = "Next player: " + (xIsNext ? "X" : "O");
@@ -22,7 +25,7 @@ function Board({ xIsNext, squares, onPlay }) {
   // and you’ll have Square call that function when a square is clicked. 
   function handleClick(i) {
     // check to see if the square already has a X or an O or if a player has already won
-    if (squares[i] || calculateWinner(squares)) {
+    if (squares[i] || endOfGame(squares) || calculateWinner(squares)) {
       return;
     }
     // creates a copy of the squares array
@@ -121,6 +124,13 @@ export default function Game() {
   );
 }
 
+function endOfGame(squares){
+  if(squares.every(function(i) { return i !== null; })) {
+    return squares.length;
+  }
+  return null;
+}
+
 function calculateWinner(squares) {
   const lines = [
     [0, 1, 2],
@@ -139,6 +149,7 @@ function calculateWinner(squares) {
     }
   }
   return null;
+  
 }
 
 function restart() {
