@@ -125,6 +125,7 @@ export default function Game() {
 }
 
 function endOfGame(squares){
+  // check if all spaces have a value
   if(squares.every(function(i) { return i !== null; })) {
     return squares.length;
   }
