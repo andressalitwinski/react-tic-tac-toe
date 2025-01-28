@@ -61,21 +61,53 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  // set the first move to be “X” by default
-  const [xIsNext, setXIsNext] = useState(true);
   // [Array(9).fill(null)] is an array with a single item, which itself is an array of 9 nulls.
   const [history, setHistory] = useState([Array(9).fill(null)]);
+  // keep track of which step the user is currently viewing
+  const [currentMove, setCurrentMove] = useState(0);
+  // true when currentMove is even:
+  const xIsNext = currentMove % 2 === 0;
   // read the last squares array 
-  const currentSquares = history[history.length - 1];
+  // const currentSquares = history[history.length - 1];
+  // render the currently selected move, instead of always rendering the final move:
+  const currentSquares = history[currentMove];
 
-  //will be called by the Board component(with the updated squares array when a player makes a move) to update the game
+  // will be called by the Board component(with the updated squares array when a player makes a move) to update the game
   function handlePlay(nextSquares) {
+    // If you “go back in time” and then make a new move from that point, you only want to keep the history up to that point. 
+    // Instead of adding nextSquares after all items (... spread syntax) in history, you’ll add it after 
+    // all items in history.slice(0, currentMove + 1) so that you’re only keeping that portion of the old history.
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
     // update history by appending the updated squares array as a new history entry. 
     // Creates a new array that contains all the items in history, followed by nextSquares. 
     // You can read the ...history spread syntax as “enumerate all the items in history”.)
-    setHistory([...history, nextSquares]);
-    setXIsNext(!xIsNext);
+    // setHistory([...history, nextSquares]);
+    setHistory(nextHistory);
+    // update currentMove to point to the latest history entry.
+    setCurrentMove(nextHistory.length - 1);
   }
+
+  function jumpTo(nextMove) {
+    setCurrentMove(nextMove);
+  }
+
+  // Transform your history of moves into React elements representing buttons and display a list of buttons to “jump” to past moves
+ // squares = each element of history
+ // move = each array index
+  const moves = history.map((squares, move) => {
+    let description;
+    if (move > 0) {
+      description = 'Go to move #' + move;
+    } else {
+      description = 'Go to game start';
+    }
+    return (
+      <li key={move}>
+        <button onClick={() => jumpTo(move)}>{description}</button>
+      </li>
+    );
+  });
+
 
   return (
     <div className="game">
@@ -83,7 +115,7 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className="game-info">
-        <ol>{/*TODO*/}</ol>
+        <ol>{moves}</ol>
       </div>
     </div>
   );
