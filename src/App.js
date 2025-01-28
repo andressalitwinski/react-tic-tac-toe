@@ -1,15 +1,14 @@
 import { useState } from 'react';
 
-export default function Board() {
-  // set the first move to be “X” by default
-  const [xIsNext, setXIsNext] = useState(true);
-  // To collect data from multiple children, or to have two child components communicate with each other,
-  // declare and store the game’s state in the parent Board component instead of in each Square. 
-  // The parent component can pass that state back down to the children via props. 
-  // This keeps the child components in sync with each other and with their parent.
-  // squares: a state variable that defaults to an array of 9 nulls corresponding to the 9 squares
-  const [squares, setSquares] = useState(Array(9).fill(null));
+function Square({ value, onSquareClick }) {
+  return (
+    <button className="square" onClick={onSquareClick}>
+      {value}
+    </button>
+  );
+}
 
+function Board({ xIsNext, squares, onPlay }) {
   const winner = calculateWinner(squares);
   let status;
   if (winner) {
@@ -34,15 +33,8 @@ export default function Board() {
     } else {
       nextSquares[i] = "O";
     }
-    // Calling the setSquares function lets React know the state of the component has changed. 
-    // This will trigger a re-render of the components that use the squares state (Board) 
-    // as well as its child components (the Square components that make up the board).
-    setSquares(nextSquares);
-    setXIsNext(!xIsNext);
-  }
 
-  function restart() {
-    window.location.reload(false);
+    onPlay(nextSquares);
   }
 
   return (
@@ -68,13 +60,32 @@ export default function Board() {
   );
 }
 
-// ------------------------------------ FUNCTIONS ------------------------------------ //
+export default function Game() {
+  // set the first move to be “X” by default
+  const [xIsNext, setXIsNext] = useState(true);
+  // [Array(9).fill(null)] is an array with a single item, which itself is an array of 9 nulls.
+  const [history, setHistory] = useState([Array(9).fill(null)]);
+  // read the last squares array 
+  const currentSquares = history[history.length - 1];
 
-function Square({ value, onSquareClick }) {
+  //will be called by the Board component(with the updated squares array when a player makes a move) to update the game
+  function handlePlay(nextSquares) {
+    // update history by appending the updated squares array as a new history entry. 
+    // Creates a new array that contains all the items in history, followed by nextSquares. 
+    // You can read the ...history spread syntax as “enumerate all the items in history”.)
+    setHistory([...history, nextSquares]);
+    setXIsNext(!xIsNext);
+  }
+
   return (
-    <button className="square" onClick={onSquareClick}>
-      {value}
-    </button>
+    <div className="game">
+      <div className="game-board">
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+      </div>
+      <div className="game-info">
+        <ol>{/*TODO*/}</ol>
+      </div>
+    </div>
   );
 }
 
@@ -98,3 +109,6 @@ function calculateWinner(squares) {
   return null;
 }
 
+function restart() {
+  window.location.reload(false);
+}
